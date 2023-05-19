@@ -5,9 +5,15 @@ import java.io.File;
 import java.net.URL;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Spring容器
+ * 1. 通过注解扫描搜有的bean
+ * 2. 实例化单例bean
+ */
 public class ApplicationContext {
     private Class configClass;
     private final ConcurrentHashMap<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Object> beanObjects = new ConcurrentHashMap<>();
 
     public ApplicationContext(Class appConfigClass) {
         this.configClass = appConfigClass;
@@ -67,9 +73,38 @@ public class ApplicationContext {
             }
 
         }
+
+        // 创建单例bean
+        for (String beanName : beanDefinitionMap.keySet()) {
+            BeanDefinition beanDefinition = beanDefinitionMap.get(beanName);
+            Object bean = createBean(beanName, beanDefinition);
+            if (bean != null) {
+                beanObjects.put(beanName, bean);
+            }
+        }
+
+    }
+
+    private Object createBean(String beanName, BeanDefinition beanDefinition) {
+        return null;
     }
 
     public Object getBean(String beanName) {
-        return null;
+        // 单例bean可以从bean池子里面取， 多例bean需要新建
+        BeanDefinition beanDefinition = beanDefinitionMap.get(beanName);
+        if (beanDefinition == null) {
+            throw new NullPointerException();
+        }
+        if (beanDefinition.getScope().equals("singleton")) {
+            Object bean = beanObjects.get(beanName);
+            if (bean == null) {
+                bean = createBean(beanName, beanDefinition);
+                assert bean != null;
+                beanObjects.put(beanName, bean);
+            }
+            return bean;
+        } else {
+            return createBean(beanName, beanDefinition);
+        }
     }
 }
