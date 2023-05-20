@@ -2,6 +2,7 @@ package com.wy.spring;
 
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -86,7 +87,20 @@ public class ApplicationContext {
     }
 
     private Object createBean(String beanName, BeanDefinition beanDefinition) {
-        return null;
+        Class clazz = beanDefinition.getType();
+        Object o;
+        try {
+            o = clazz.getConstructor().newInstance();
+        } catch (InstantiationException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+        return o;
     }
 
     public Object getBean(String beanName) {
