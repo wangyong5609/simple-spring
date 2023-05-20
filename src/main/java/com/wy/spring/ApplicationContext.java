@@ -94,16 +94,20 @@ public class ApplicationContext {
 
     private Object createBean(String beanName, BeanDefinition beanDefinition) {
         Class clazz = beanDefinition.getType();
-        Object o;
+        Object instance;
         try {
             // 使用无参构造方法创建实例
-            o = clazz.getConstructor().newInstance();
+            instance = clazz.getConstructor().newInstance();
             // 依赖注入
             for (Field field : clazz.getDeclaredFields()) {
                 if (field.isAnnotationPresent(Autowired.class)) {
                     field.setAccessible(true);
-                    field.set(o, getBean(field.getName()));
+                    field.set(instance, getBean(field.getName()));
                 }
+            }
+            // beanName回调
+            if (instance instanceof BeanNameAware) {
+                ((BeanNameAware)instance).setBeanName(beanName);
             }
             
         } catch (InstantiationException e) {
@@ -115,7 +119,7 @@ public class ApplicationContext {
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
-        return o;
+        return instance;
     }
 
     public Object getBean(String beanName) {
