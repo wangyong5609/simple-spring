@@ -6,7 +6,7 @@ import com.wy.spring.*;
 @Scope("prototype")
 public class UserService implements BeanNameAware, InitializingBean {
     @Autowired
-    private OrderService orderService;
+    private OrderInterface orderService;
     private String beanName;
     
     public void test(){

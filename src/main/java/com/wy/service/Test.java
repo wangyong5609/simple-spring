@@ -8,5 +8,8 @@ public class Test {
         ApplicationContext applicationContext = new ApplicationContext(AppConfig.class);
         UserService userService = (UserService) applicationContext.getBean("userService");
         userService.test();
+
+        OrderInterface orderService = (OrderInterface) applicationContext.getBean("orderService");
+        orderService.test();
     }
 }

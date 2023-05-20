@@ -122,7 +122,7 @@ public class ApplicationContext {
             }
             // 初始化前处理
             for (BeanPostProcessor processor : beanPostProcessorList) {
-                processor.postProcessBeforeInitialization(beanName, instance);
+                instance = processor.postProcessBeforeInitialization(beanName, instance);
             }
             // 初始化
             if (instance instanceof InitializingBean) {
@@ -130,7 +130,7 @@ public class ApplicationContext {
             }
             // 初始化后处理
             for (BeanPostProcessor processor : beanPostProcessorList) {
-                processor.postProcessAfterInitialization(beanName, instance);
+                instance = processor.postProcessAfterInitialization(beanName, instance);
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
