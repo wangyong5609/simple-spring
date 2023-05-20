@@ -1,7 +1,9 @@
 package com.wy.spring;
 
 
+import java.beans.Introspector;
 import java.io.File;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.concurrent.ConcurrentHashMap;
@@ -62,6 +64,10 @@ public class ApplicationContext {
 
                                 Component componentAnnotation = aClass.getAnnotation(Component.class);
                                 String beanName = componentAnnotation.value();
+                                if ("".equals(beanName) || beanName == null) {
+                                    beanName = Introspector.decapitalize(aClass.getSimpleName());
+                                }
+                                
                                 // 将beanDefinition存入map
                                 beanDefinitionMap.put(beanName, beanDefinition);
                             }
@@ -90,7 +96,16 @@ public class ApplicationContext {
         Class clazz = beanDefinition.getType();
         Object o;
         try {
+            // 使用无参构造方法创建实例
             o = clazz.getConstructor().newInstance();
+            // 依赖注入
+            for (Field field : clazz.getDeclaredFields()) {
+                if (field.isAnnotationPresent(Autowired.class)) {
+                    field.setAccessible(true);
+                    field.set(o, getBean(field.getName()));
+                }
+            }
+            
         } catch (InstantiationException e) {
             throw new RuntimeException(e);
         } catch (IllegalAccessException e) {
