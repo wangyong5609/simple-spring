@@ -32,3 +32,47 @@ public class OrderService implements OrderInterface{
 如果找到则直接注入，找不到则抛出异常信息“ no qualifying bean of type ...UserService”.
 
 这里有个口诀：先By type，再By name。
+
+### P18 AOP底层实现原理
+
+假如现在有下面一个Bean，对它做了AOP代理
+
+~~~java
+public class UserService() {
+    @Autowire
+    OrderService orderService;
+    
+    public void test() {
+        orderService.test();
+    }
+}
+~~~
+
+Spring会使用CGLib为它生成这样一个代理类
+
+~~~java
+class UserServiceProxy extends UserService {
+    UserService target;
+    public void test() {
+    	// 切面逻辑 @Before
+        target.test(); // 普通对象.test();
+    }
+}
+~~~
+
+再看一下上面的Bean的生命周期
+
+1. 代理对象在创建以后，没有进行依赖注入就放入了单例池，所以UserServiceProxy中的orderService是null。
+
+2. 为了解决UserService中的依赖是null的情况，所以在代理类中加入了一个属性target，它的值就是普通对象，而普通对象是做过依赖注入的，所以用target调用UserService的test方法是可以调通的。
+
+3. 代理对象会通过判断程序是否对类中的方法做了切面处理，在方法中加入@Before和@After的切面逻辑处理。
+
+4. 代理类为什么要继承UserService呢，看起来好像不继承也能用，这是因为getBean() 从单例池中拿到的是代理对象，就像这样
+
+   ~~~java
+   UserService userService = (UserService)ApplicationContext.getBean("userService");
+   ~~~
+
+   如果不继承的话，这里是无法进行强制转换的。
+
