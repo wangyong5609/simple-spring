@@ -173,6 +173,8 @@ userService.test1();
 
 ### P25 第二级缓存earlySingletonObjects的作用
 
+earlySingletonObjects中放的是没有经过Bean创建完整生命周期的对象
+
 earlySingletonObjects的作用是为了保证bean单例。
 
 ![image-20230521195858057](https://gitee.com/hammer-w/images/raw/master/image-20230521195858057.png)
@@ -182,3 +184,44 @@ earlySingletonObjects的作用是为了保证bean单例。
 第三级缓存里存了一个lambda表达式，这个表达式的作用是拿到普通对象然后生成代理对象， 然后把代理对象放入earlySingletonObjects
 
 ![image-20230521201707789](https://gitee.com/hammer-w/images/raw/master/image-20230521201707789.png)
+
+### P30 ImportBeanDefinitionRegistrar的作用
+
+通过FactoryBean接口生成Mybatis Mapper Bean，核心代码：
+
+~~~java
+AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext();
+applicationContext.register(AppConfig.class);
+// 创建BeanDefinition，指定bean类型为FactoryBean.class
+AbstractBeanDefinition beanDefinition = BeanDefinitionBuilder.genericBeanDefinition().getBeanDefinition();
+beanDefinition.setBeanClass(ZhouyuFactoryBean.class);
+// 然后通过执行构造函数的参数值
+beanDefinition.getConstructorArgumentValues().addGenericArgumentValue(UserMapper.class);
+// 将BeanDefinition注册到applicationContext中
+applicationContext.registerBeanDefinition("userMapper", beanDefinition);
+
+applicationContext.refresh();
+~~~
+
+Spring在创建Bean ZhouyuFactoryBean 的时候，发现它实现了FactoryBean接口，就会调用实现类的getObject方法，而返回的对象类型已经通过构造函数定义好了
+
+另一种创建方式：基于@Import 和ImportBeanDefinitionRegistrar接口
+
+~~~java
+public class WyBeanDefinitionRegistrar implements ImportBeanDefinitionRegistrar {
+    @Override
+    public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry, BeanNameGenerator importBeanNameGenerator) {
+        AbstractBeanDefinition beanDefinition = BeanDefinitionBuilder.genericBeanDefinition().getBeanDefinition();
+        beanDefinition.setBeanClass(ZhouyuFactoryBean.class);
+        beanDefinition.getConstructorArgumentValues().addGenericArgumentValue(UserMapper.class);
+        registry.registerBeanDefinition("userMapper", beanDefinition);
+    }
+}
+~~~
+
+在启动类上导入
+
+~~~
+@Import(WyBeanDefinitionRegistrar.class)
+~~~
+
