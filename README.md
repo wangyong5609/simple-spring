@@ -177,3 +177,8 @@ earlySingletonObjects的作用是为了保证bean单例。
 
 ![image-20230521195858057](https://gitee.com/hammer-w/images/raw/master/image-20230521195858057.png)
 
+### P26 第三级缓存singletonFactories的作用
+
+第三级缓存里存了一个lambda表达式，这个表达式的作用是拿到普通对象然后生成代理对象， 然后把代理对象放入earlySingletonObjects
+
+![image-20230521201707789](https://gitee.com/hammer-w/images/raw/master/image-20230521201707789.png)
