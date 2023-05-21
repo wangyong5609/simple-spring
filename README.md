@@ -2,7 +2,7 @@
 
 ## 笔记
 
-### P17
+### P17 推断构造方法底层原理
 
 **Bean创建的生命周期**
 
@@ -75,4 +75,98 @@ class UserServiceProxy extends UserService {
    ~~~
 
    如果不继承的话，这里是无法进行强制转换的。
+
+### P19 Spring事务底层原理
+
+首先开启事务管理，使用注解EnableTransactionManagement
+
+Spring在生成Bean的时候会扫描@Transaction注解，并对使用了该注解的方法进行AOP处理
+
+~~~java
+@Transaction
+public void test() {
+    // 执行sql1 sql2
+}
+~~~
+
+~~~java
+class UserServiceProxy extends UserService {
+    UserService target;
+    public void test() {
+    	// Spring事务切面逻辑
+        // 开启事务
+        // 事务管理器创建一个数据库连接，将autoCommit设为false
+        target.test(); // 普通对象.test() ql1 sql2;
+        // 如果test方法没有抛异常，则commit，否则rollback
+    }
+}
+~~~
+
+以上就是事务的一个简单原理
+
+### P20 Spring事务失效原理
+
+简单理解就是：执行方法的对象是普通对象，没有被事务机制管理。
+
+代码场景：
+
+~~~java
+@Component
+public class UserService() {
+    @Transaction
+    public void test1() {
+        // 执行sql1
+        test2();
+    }
+    @Transaction(propagation=Propagation.NEVER) // 如果在此方法外部发现事务支持就抛出异常
+    public void test2() {
+        // 执行sql2
+	}
+}
+~~~
+
+~~~java
+UserService userService = (UserService)ApplicationContext.getBean("userService");
+userService.test1();
+~~~
+
+在上面的场景中，理想情况是执行test2()抛出异常，但结果却是sql1和sql2都执行成功了，为什么呢
+
+因为test1方法是被UserService的代理对象调用，可以参考P19的底层原理，代理对象会对test1做事务处理，对test1中的sql执行结果进行commit或者rollback。
+
+实际执行test1方法的是一个普通对象，等同于 new UserService(), 普通对象里面调用test2方法，是不会有事务处理的，因此test2方法上的注解会失效。
+
+1. userService.test1()
+2. proxy.test1()
+3. 事务切面处理
+4. 普通对象.test1()
+5. 普通对象.test2()
+
+那么这里@Transaction注解怎么解决呢
+
+本质上是因为执行方法的对象是普通对象，那么我们拿到代理对象去执行test2就可以了，下面有几种方式
+
+1. 将test2方法另外写在其它BeanA里面，然后将BeanA注入到UserService中, 由BeanA来执行test2方法
+
+2. 将UserService代理对象注入到UserService中（推荐）
+
+   ~~~java
+   @Component
+   public class UserService() {
+       @Autowired
+       UserService userService;
+       
+       @Transaction
+       public void test1() {
+           // 执行sql1
+           userService.test2();
+       }
+       @Transaction(propagation=Propagation.NEVER) // 如果在此方法外部发现事务支持就抛出异常
+       public void test2() {
+           // 执行sql2
+   	}
+   }
+   ~~~
+
+   
 
