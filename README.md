@@ -168,5 +168,12 @@ userService.test1();
    }
    ~~~
 
-   
+
+3. 使用AopContext.currentProxy()拿到当前代理对象
+
+### P25 第二级缓存earlySingletonObjects的作用
+
+earlySingletonObjects的作用是为了保证bean单例。
+
+![image-20230521195858057](https://gitee.com/hammer-w/images/raw/master/image-20230521195858057.png)
 
