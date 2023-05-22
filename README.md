@@ -254,3 +254,8 @@ public class WyBeanDefinitionRegistrar implements ImportBeanDefinitionRegistrar 
 
    5. 将doScan方法返回的BeanDefinition注册到Spring容器中
 
+### P34 Spring中的Bean name生成机制
+
+bean name默认由Spring的BeanNameGenerator生成，我们也可以定义自己的BeanNameGenerator，只要继承它即可。
+
+bean name默认首字母小写，如果Bean类名前两个字母都是大写，那么将用类名作为Bean name。
