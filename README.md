@@ -225,3 +225,32 @@ public class WyBeanDefinitionRegistrar implements ImportBeanDefinitionRegistrar 
 @Import(WyBeanDefinitionRegistrar.class)
 ~~~
 
+### P31 Mapper扫描的底层原理
+
+1. 定义一个@MapperScan注解,在启动类使用该注解，值为mapper包路径
+
+2. 在@MapperScan注解上添加 @Import(WyBeanDefinitionRegistrar.class)
+
+   ~~~java
+   @Retention(RetentionPolicy.RUNTIME)
+   @Target(ElementType.TYPE)
+   @Import(WyBeanDefinitionRegistrar.class)
+   public @interface MapperScan {
+       String value() default "";
+   }                                            
+   ~~~
+
+3. 修改WyBeanDefinitionRegistrar.registerBeanDefinitions()
+
+   1. 从AnnotationMetadata中拿到我们@MapperScan注解中定义的包扫描路径
+
+   2. 自定义一个Scanner扫描器，去扫描包下面的mapper
+
+   3. Spring的扫描器是不处理接口类的，所以需要重写扫描器的isCandidateComponent方法，让扫描器只处理接口
+
+   4. 然后重写doScan方法，doScan方法默认返回扫描到的类的Definition，我们在上面的章节中提到，我们需要的是ZhouyuFactoryBean的BeanDefinition,
+
+      所以在方法中将UserMapper转换为ZhouyuFactoryBean，并将UserMapper.class通过构造函数传给ZhouyuFactoryBean。
+
+   5. 将doScan方法返回的BeanDefinition注册到Spring容器中
+
