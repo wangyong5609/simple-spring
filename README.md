@@ -265,3 +265,13 @@ bean name默认首字母小写，如果Bean类名前两个字母都是大写，�
 ScopedProxyMode 属性可用在@Component和@ComponentScan中，它的作用是，当Bean的scope是request或者session时，需要为它创建代理对象注入到其他单例Bean中，ScopedProxyMode指定生成代理对象的方式：CGLib，JDK等。
 
 resourcePattern属性：指定@ComponentScan扫描的路径规则，默认"* */ *.class", 扫描指定包名下所有class文件
+
+### P35 ExcludeFilter机制
+
+ExcludeFilter的目的是为了将扫描到的一些类排除掉，不实例化为Bean。
+
+### P38 扫描中的ASM技术
+
+ASM技术是通过字节码的规则来获取类信息和注解信息，从而判定类是否需要加载为Bean。
+
+假如一个包下有上千个类，但是只有少部分是Bean，那么ASM技术比将类加载到JVM中利用反射去扫描Bean的方式要节省资源
