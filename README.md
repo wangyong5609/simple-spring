@@ -259,3 +259,9 @@ public class WyBeanDefinitionRegistrar implements ImportBeanDefinitionRegistrar 
 bean name默认由Spring的BeanNameGenerator生成，我们也可以定义自己的BeanNameGenerator，只要继承它即可。
 
 bean name默认首字母小写，如果Bean类名前两个字母都是大写，那么将用类名作为Bean name。
+
+### P35 ScopedProxyMode的作用
+
+ScopedProxyMode 属性可用在@Component和@ComponentScan中，它的作用是，当Bean的scope是request或者session时，需要为它创建代理对象注入到其他单例Bean中，ScopedProxyMode指定生成代理对象的方式：CGLib，JDK等。
+
+resourcePattern属性：指定@ComponentScan扫描的路径规则，默认"* */ *.class", 扫描指定包名下所有class文件
